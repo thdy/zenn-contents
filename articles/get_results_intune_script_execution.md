@@ -1,9 +1,9 @@
 ---
 title: "Intune から配布したスクリプトの実行結果を Graph API で取得する"
-emoji: "🛠"
+emoji: "🧐"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["intune", "windows"]
-published: false
+published: true
 ---
 # この記事は何か
 Intune から Windows 10 デバイスへ配布したスクリプトの実行結果の詳細を Microsoft Graph API を使って取得する tips です。
