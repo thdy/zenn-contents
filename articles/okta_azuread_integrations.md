@@ -37,14 +37,13 @@ OktaをIdPにしてAzure AD(Microsoft 365)とのSSOとプロビジョニング�
 # SSOを構成する
 それではさっそくOktaをIdPとしてAzure ADとのシングルサインオンを構成したいと思います。
 
-## ID連携プロトコル
-SSOの方式としてよく使われているのはOpen ID ConnectとSAMLですが、OktaがサポートしているAzure ADとの連携方式はWS-Federationです。
-正直Microsoft以外で使われているのを見たことがないです（他にあればぜひ教えて下さい）。
-中身はほぼSAMLがベースのようですが興味がある方は[WS-Federationのパブリックドラフト](http://download.boulder.ibm.com/ibmdl/pub/software/dw/specs/ws-fed/WS-Federation-V1-1B.pdf)を読んでみてください。
+## ID連携プロトコルはWS-Federation
+SSOの方式として一般的によく使われているのはOpen ID ConnectとSAMLですが、OktaがサポートしているAzure ADとの連携方式はWS-Federationです。正直Microsoft以外でWS-Federationが使われているアプリケーションを見たことがないです（他にあればぜひ教えてください）。
+WS-Federationの中身はほぼSAMLがベースのようですが興味がある方は[WS-Federationのパブリックドラフト](http://download.boulder.ibm.com/ibmdl/pub/software/dw/specs/ws-fed/WS-Federation-V1-1B.pdf)を読んでみてください。
 
-## SSOできるドメインとできないドメイン
-Azure ADはテナント作成時に自動作成されるドメイン（`{mydomain}.onmicrosoft.com`）と後から追加できるカスタムドメインがありますが、SSOできるのはカスタムドメインのみで `{mydomain}.onmicrosoft.com` のほうはSSOできません。
-またカスタムドメインが複数ある場合はそれぞれOkta側でアプリを作成してSSOを設定するイメージとなります。
+## SSOできるドメインとできないドメインがある
+Azure ADはテナント作成時に自動作成されるドメイン（`{mydomain}.onmicrosoft.com`）と後から追加できるカスタムドメインがありますが、SSOできるのはカスタムドメインのみです。 `{mydomain}.onmicrosoft.com` のほうはSSOできません。
+またカスタムドメインが複数ある場合はそれぞれのドメインごとにOkta側でアプリを作成してSSOを設定するイメージとなります。
 ```mermaid
 graph LR
     subgraph Okta
@@ -58,14 +57,13 @@ graph LR
     end
     o1--federation-->a1
     o2--federation-->a2
-    
 ```
 
 
-## Okta公式の手順
+## Okta公式のSSO設定ドキュメント
 [Configure single sign on for Office 365 | Okta](https://help.okta.com/en/prod/Content/Topics/Apps/Office365-Deployment/configure-sso.htm)
 
-上記リンク先がOktaの公式手順なのですが、今回試した中ではここに書いてある内容だけだとうまくいかない部分があったので以下に実際に行った手順を書いていきます。
+上記リンク先がOktaの公式ドキュメントなのですが、今回試した中ではここに書いてある内容だけだとうまくいかない部分があったので以下に実際に行った手順を書いていきます。
 
 ## 実際に行った手順
 ### Azure AD側でやること
