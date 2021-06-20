@@ -27,7 +27,8 @@ graph LR
       a0[example.onmicrosoft.com]
       a1[example.com]
     end
-    o1<--WS-Federation-->a1
+    o1--WS-Federation-->a1
+    a1-->o1
 ```
 
 # 設定手順
