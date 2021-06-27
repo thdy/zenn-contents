@@ -1,7 +1,7 @@
 {
   "name": "zenn-contents",
   "version": "1.0.0",
-  "description": "",
+  "description": "* [📘 How to use](https://zenn.dev/zenn/articles/zenn-cli-guide) * [📘 Markdown guide](https://zenn.dev/zenn/articles/markdown-guide)",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -19,5 +19,11 @@
   "homepage": "https://github.com/thdy/zenn-contents#readme",
   "dependencies": {
     "zenn-cli": "^0.1.77"
+  },
+  "devDependencies": {
+    "textlint": "^12.0.0",
+    "textlint-rule-preset-ja-spacing": "^2.1.3",
+    "textlint-rule-preset-ja-technical-writing": "^6.0.0",
+    "textlint-rule-spellcheck-tech-word": "^5.0.0"
   }
 }
