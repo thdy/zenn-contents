@@ -11,7 +11,7 @@ OktaをIdPとしてAzure AD(Microsoft 365)とフェデレーションを構成�
 なおOktaのドキュメントやアプリケーションテンプレート上だとOffice 365と表記されている（恐らくエンドユーザーが触るのは主にOffice 365なのでそれに合わせていると思われる）のですが、実際の接続先はAzure ADなので本記事上では個人的にしっくり来るAzure ADで表現しています。
 
 # 前提
-今回は
+今回は下記の内容を前提として構成した例になります。
 - Oktaをメインディレクトリとする
 - オンプレミスのActive Directoryは無し
 - Windows PCはAzure AD Join + Intuneにて管理運用している
