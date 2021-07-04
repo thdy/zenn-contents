@@ -1,16 +1,17 @@
 ---
 title: "OktaをIdPとしてAzure ADとのフェデレーションを構成する"
-emoji: "⚔️"
+emoji: "🪢"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["okta", "azuread"]
 published: true
 ---
 # はじめに
-OktaをIdPとしてAzure AD(Microsoft 365)とフェデレーションを構成する際、[Okta公式のドキュメント](https://help.okta.com/en/prod/Content/Topics/Apps/Office365-Deployment/configure-sso.htm)通りだとうまくいかない部分があったり書いてないことがあったりで色々ハマったので振り返りも兼ねて書きました。
+OktaをIdPとしてAzure AD(Microsoft 365)とフェデレーションを構成する際、[Okta公式のドキュメント](https://help.okta.com/en/prod/Content/Topics/Apps/Office365-Deployment/configure-sso.htm)通りだとうまくいかない部分があったり書いてないことがあったりで色々ハマったのでそのメモです。
 
-ちなみにOktaのドキュメントやアプリケーションテンプレート上だとOffice 365と表記されている（恐らくエンドユーザーが触るのは主にOffice 365なのでそれに合わせていると思われる）んですが、管理者目線だとしっくりこないので本記事上ではAzure ADと表現します。
+なおOktaのドキュメントやアプリケーションテンプレート上だとOffice 365と表記されている（恐らくエンドユーザーが触るのは主にOffice 365なのでそれに合わせていると思われる）のですが、実際の接続先はAzure ADなので本記事上では個人的にしっくり来るAzure ADで表現しています。
 
 # 前提
+今回は
 - Oktaをメインディレクトリとする
 - オンプレミスのActive Directoryは無し
 - Windows PCはAzure AD Join + Intuneにて管理運用している
