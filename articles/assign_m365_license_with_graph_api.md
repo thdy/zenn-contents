@@ -1,28 +1,21 @@
 ---
-title: "Microsoft Graph APIを使ってMicrosoft 365のライセンスを付与する"
+title: "Microsoft Graph API経由でMicrosoft 365のライセンスを付与する"
 emoji: "🍔"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["api", "azure", "nodejs"]
+topics: ["api", "azure", "microsoft365"]
 published: false
 ---
 # はじめに
-Slack上で申請承認が完了すると自動的にSaaSのライセンスを付与するBolt.js製のSlack Appを社内で運用しているのですが、そこにMicrosoft 365のライセンスを付与する処理を組み込んだ際のメモです。
+Microsoft Graphは、Microsoft 365、Windows 10、Enterprise Mobility + Security等をプログラマブルに操作するためのプラットフォームです。
+https://docs.microsoft.com/ja-jp/graph/overview
 
-# Microsoft Graphとは
-Microsoft Graphは、Microsoft 365、Windows 10、およびEnterprise Mobility + Securityをプログラマブルに操作するためのプラットフォームです。
-今回はMicrosoft Graphが提供するAPIを使用してAzure AD上のユーザーにライセンスを付与します。
-> [Microsoft Graph の概要 - Microsoft Graph | Microsoft Docs](https://docs.microsoft.com/ja-jp/graph/overview)
-> ![](https://storage.googleapis.com/zenn-user-upload/9d24d0d93098d6d6b5bfe462.png)
+先日このMicrosoft GraphのAPIを使用してSlack AppからMicrosoft 365 Apps for Businessのライセンスを付与するツールを作成したのですが、その際にAzure AD側で必要となったステップについてメモとして残しておこうと思います。
+（※ Slack App側の実装については本記事では割愛します）
 
-# 認証と認可
-通常IT担当者などの人間がMicrosoft 365のライセンスを付与する際にはまずAzure Active Directory（以下 Azure AD）での認証が完了しており、その認証されたユーザーに対してライセンスを管理できる権限が認可されていることが前提となります。
+# Azure ADのアクセストークンを取得する
+IT担当者がAzure ADにサインインして操作するのと違って、今回はアプリがライセンスを付与するため、OAuth 2.0クライアント資格情報の付与フローを使用してAzure ADからアクセストークンを取得します。
 
-今回は人間に代わってアプリにライセンスを付与してもらうため、その権限をアプリに持たせないといけません。
-だれでも実行できては困るのでそのアプリは本当に正規のアプリなのか、権限を認可して良いかを認証する必要があります。
-
-この認証情報を発行するためAzure AD上にアプリを登録し、アプリに対して適切な権限を認可します。
-
-# Microsoft Azure portalからアプリを登録する
+## Microsoft Azure portalからアプリを登録する
 Azure ADの管理画面で `アプリの登録` > `新規登録` を選択します
 ![](https://storage.googleapis.com/zenn-user-upload/3bee6caa49449098dd6d195b.png)
 
@@ -77,13 +70,13 @@ Azure ADの管理画面で `アプリの登録` > `新規登録` を選択しま
 アプリケーションを実行する中で管理者のサインインを発生させたくない場合はあらかじめ管理者の同意を与えておきます。ここは要件に応じて選択します。
 ![](https://storage.googleapis.com/zenn-user-upload/6d4d9575d589346a0fc1bc54.png)
 
-以上で権限付与も完了しました。
+これでアクセストークンを取得する準備が整いました。
 
-# アクセストークンの取得
+## 実際にアクセストークンを取得してみる
 実際にライセンス付与のAPIを実行する際の認証にはアクセストークンが必要となるので、前述の手順で生成したシークレットIDとシークレットキーを用いてアクセストークンを取得します。
 
 下記はcurlで取得する際のサンプルです。
-```shell
+```shell:bash
 curl -d "client_id=$MSGRAPH_CLIENT_ID" \
  -d "scope=https%3A%2F%2Fgraph.microsoft.com%2F.default" \
  -d client_secret=$MSGRAPH_CLIENT_SECRET \
@@ -91,3 +84,74 @@ curl -d "client_id=$MSGRAPH_CLIENT_ID" \
  -H "Content-Type: application/x-www-form-urlencoded" \
  -X POST https://login.microsoftonline.com/$MY_AZUREAD_DOMAIN/oauth2/v2.0/token
  ```
+
+上記を実行した際の応答の例です。
+
+```JSON:JSON
+{
+  "token_type": "Bearer",
+  "expires_in": 3599,
+  "ext_expires_in": 3599,
+  "access_token": "eyJ0eXAiOiJKV1QiLCJub25jZSI6Imd5b21CUVNlUGJPTjI5a..."
+}
+```
+
+# API経由でライセンスを付与する
+ここまででアクセストークンを取得できたのでいよいよライセンスを付与します。
+実際に使用するAPIエンドポイントは `assignLicense` です。
+https://docs.microsoft.com/ja-jp/graph/api/user-assignlicense?view=graph-rest-1.0&tabs=http
+
+サンプルとしてcurlから特定のユーザーにMicrosoft 365 Apps for Businessのライセンスを付与する場合は下記のような記述になります。
+なお `{user_id}` の部分はUPNで記載可能です。
+
+```shell:bash
+curl --request POST https://graph.microsoft.com/v1.0/users/{user_id}/assignLicense \
+ -H "Authorization: Bearer $MSGRAPHTOKEN" \
+ -H "Content-Type: application/json" \
+ -d '{
+    "addLicenses": [
+        {
+            "disabledPlans": [],
+            "skuId": "cdd28e44-67e3-425e-be4c-737fab2899d3"
+        }
+    ],
+    "removeLicenses": []
+ }'
+```
+
+ただ前述のDocsだと分かりにくい部分がいくつかあったので補足します。
+
+## removeLicenses パラメーターの扱いについて
+このAPIはライセンスの解除もできるようになっており、Docsの例では付与と解除を同時に実行しています。
+解除の必要がない場合は前述のサンプルのように単純に `removeLicenses` の値をブランクにすればOKです。
+
+## skuIdの探し方
+パラメーター `addLicenses` の中で `skuId` というプロパティがありますが、ここで何のライセンスを付与するかの種類を指定しています。
+
+このIDを特定する方法は複数あり、まずひとつはGraphエクスプローラー等で `https://graph.microsoft.com/v1.0/subscribedSkus` のAPIエンドポイントを参照することです。（[試してみる場合はここをクリックしてGraph エクスプローラーを起動](https://developer.microsoft.com/ja-jp/graph/graph-explorer?request=subscribedSkus&method=GET&version=v1.0&GraphUrl=https://graph.microsoft.com)）
+こちらの方法の特長として自社テナントで保有しているライセンスおよびその購入数と割当数が確認できます。
+https://docs.microsoft.com/ja-jp/graph/api/subscribedsku-list?view=graph-rest-1.0&tabs=http
+
+例えばMicrosoft 365 Apps for Businessを1000ライセンス保有しており950ライセンス割り当てしていると下記のような応答になります。
+```JSON:JSON
+{
+    "@odata.id": "https://graph.microsoft.com/v1.0/$metadata#subscribedSkus",
+    "capabilityStatus": "Enabled",
+    "consumedUnits": 950,
+    "id": "0f191825-bf21-445d-a25c-a2ad7ea94105_cdd28e44-67e3-425e-be4c-737fab2899d3",
+    "skuId": "cdd28e44-67e3-425e-be4c-737fab2899d3",
+    "skuPartNumber": "O365_BUSINESS",
+    "appliesTo": "User",
+    "prepaidUnits": {
+        "enabled": 1000,
+        "suspended": 0,
+        "warning": 0
+    },
+```
+
+もうひとつもっとお手軽な方法として、製品とskuIdのリストが記載されているページがあるのでこちらでライセンス名で検索することでも確認できます。
+https://docs.microsoft.com/ja-jp/azure/active-directory/enterprise-users/licensing-service-plan-reference
+
+# おわりに
+このAPIを活用してチャットツールやワークフロー、申請フォームなどを起点に自動的にライセンス付与するように組み込めば「IT担当者が対応しなくても上長が承認すれば自動的にライセンスが付与される」といった仕組みが実現できると思います。
+自動化って楽しいですね。
