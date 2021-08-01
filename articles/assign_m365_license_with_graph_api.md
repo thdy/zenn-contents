@@ -3,7 +3,7 @@ title: "Microsoft Graph API経由でMicrosoft 365のライセンスを付与す�
 emoji: "🍔"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["api", "azure", "microsoft365"]
-published: false
+published: true
 ---
 # はじめに
 Microsoft Graphは、Microsoft 365、Windows 10、Enterprise Mobility + Security等をプログラマブルに操作するためのプラットフォームです。
