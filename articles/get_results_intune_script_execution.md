@@ -2,7 +2,7 @@
 title: "Intune から配布したスクリプトの実行結果を Graph API で取得する"
 emoji: "🧐"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["intune", "windows"]
+topics: ["intune", "API", "PowerShell", "windows"]
 published: true
 ---
 # この記事は何か
@@ -10,34 +10,29 @@ Intune から Windows 10 デバイスへ配布したスクリプトの実行結�
 
 また、Graph API のクエリパラメータを使って出力結果を見やすくするナレッジも一部含めています。
 
-# 【課題】GUI からはスクリプトの実行ログを収集できない
-Intune からスクリプトを配布した場合、Microsoft Endpoint Manager の GUI 上では 不明 / 成功 / 失敗 しか表示されないため、配布実行したスクリプト上で処理ログを記録するようにしたりしていても Intune 上からその結果を確認することができません。
+# 課題：GUI からはスクリプトの実行ログを収集できない
+Intune からスクリプトを配布した場合、Microsoft Endpoint Manager の GUI 上では `不明 / 成功 / 失敗` しか表示されないため、配布実行したスクリプト上で処理ログを記録するようにしたりしていても Intune 上からその結果を確認することができません。
 
 ![](https://storage.googleapis.com/zenn-user-upload/pela2a6pfbprxv94qoj0grg4cw12)
 
-公式の Docs でもローカルのログファイルを参照するように書かれています。
-https://docs.microsoft.com/ja-jp/mem/intune/apps/intune-management-extension
-> クライアント コンピューター上のエージェント ログは、一般的に `\ProgramData\Microsoft\IntuneManagementExtension\Logs` にあります。 CMTrace.exe を使用してこれらのログ ファイルを表示できます。
->
+これに対して、PowerShell スクリプトの中で `Start-Transcript` や `Write-Output` などのコマンドレットを用いて処理結果を出力すると、レジストリの `HKEY_LOCAL_MACHINE¥SOFTWARE\Microsoft\IntuneManagementExtension\Policies\{UserGUID}\{ScriptGUID}` に実行結果が記録されます。
 
-このローカルのログファイルも、今年 2 月にプレビューリリースされた[診断の収集](https://docs.microsoft.com/ja-jp/mem/intune/remote-actions/collect-diagnostics)機能で取得できない事は無いのですが、1 台ずつ zip ファイルでしか取得できないのでそれらを展開して該当のログファイルを開いて…というのはかなりつらいです。
-
-一応レジストリの `HKEY_LOCAL_MACHINE¥SOFTWARE¥Microsoft¥IntuneManagementExtension¥<AzureADユーザーGUID>¥{Script ID}` に実行結果が記録されるので、特定のレジストリを収集できる資産管理ツールの類がある組織ならそれを使うでも良いとは思いますが、Intune オンリーな環境だとレジストリの収集も直接的な機能は実装されていないのが現状です。
+そしてこのレジストリ情報を収集する手段ですが、2021 年 2 月にプレビューリリースされた[診断の収集](https://docs.microsoft.com/ja-jp/mem/intune/remote-actions/collect-diagnostics)機能で取得可能です。
+ただしこの診断ログは、Intune の画面上で 1 台ずつポチポチ zip ファイルでダウンロードして展開する形になるので、対象のデバイスが複数台にわたる場合はかなりつらいです。
+（逆に言えば 1〜2 台程度ならこの診断の収集機能で事足りるかもしれません）
 
 # Graph API でスクリプト実行結果を確認する
 ということでここからが本題です。
 Microsoft Graph API を使ってスクリプトの実行結果を確認します。
 
 ## 対象スクリプトのスクリプト ID を取得する
-Intune 用 Microsoft Graph API の `deviceManagementScripts` を使用します。
-
-https://docs.microsoft.com/ja-jp/graph/api/intune-shared-devicemanagementscript-list?view=graph-rest-beta
-
-下記の API を実行すると、Intune に登録しているスクリプトの一覧を取得することができます。
+Intune 用 Microsoft Graph API の `/deviceManagement/deviceManagementScripts` エンドポイントからスクリプトの一覧を取得することができます。
 
 ```HTTP
 GET https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts
 ```
+
+https://docs.microsoft.com/ja-jp/graph/api/intune-shared-devicemanagementscript-list?view=graph-rest-beta
 
 curl 等で叩きたい場合は Azure AD 上でアプリ登録してトークン発行する必要がありますが、手っ取り早く実行するには Graph Explorer を使えば GUI 上で認証を通すことができるのでお手軽です。
 
@@ -48,7 +43,7 @@ https://developer.microsoft.com/en-us/graph/graph-explorer
 ![](https://storage.googleapis.com/zenn-user-upload/y105kpcjb2y2a1uqfoqsltnaevdh)
 ![](https://storage.googleapis.com/zenn-user-upload/tv9e66t1srfqonjh7n609ycn1t1w)
 
-以下は実行した結果として返ってくる JSON データの例です。
+以下はレスポンスの例です。
 ```JSON
 {
   "value": [
@@ -75,7 +70,7 @@ https://developer.microsoft.com/en-us/graph/graph-explorer
 スクリプトが複数登録されていれば value セクションが複数返ってくるので、実行結果を取得したいスクリプトの ID を控えておきましょう。
 
 ## スクリプトの実行結果を取得する
-前述の `deviceManagementScripts` API にスクリプトID を加えて実行することで `deviceManagementScriptDeviceState` という詳細リソースを取得できるようになります。
+前述の `deviceManagementScripts` エンドポイントにスクリプト ID を加えて実行することで `deviceManagementScriptDeviceState` という詳細リソースを取得できるようになります。
 
 ```HTTP
 GET https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/{Script ID}/deviceRunStates
@@ -87,7 +82,7 @@ GET https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/{S
 GET https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/59ea4525-4525-59ea-2545-ea592545ea59/deviceRunStates
 ```
 
-これを実行すると下記のような応答が返ってきます。
+これを実行すると下記のようなレスポンスが返ってきます。
 
 ```JSON
 {
@@ -108,7 +103,7 @@ GET https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/59
 GET https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/{Script ID}/deviceRunStates$expand=managedDevice
 ```
 
-これで実行すると、下記 Docs にある応答例を見てもらうと分かりますがデバイス名やシリアルナンバーはもちろんのこと様々なハードウェア情報が取得できます。
+これで実行すると、下記 Docs にあるレスポンスの例を見てもらうと分かりますがデバイス名やシリアルナンバーはもちろんのこと様々なハードウェア情報が取得できます。
 
 https://docs.microsoft.com/ja-jp/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta#json-representation
 
@@ -131,8 +126,8 @@ GET https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts/{S
 }
 ```
 
-さらに見やすく整形したい場合は [jq コマンド](https://qiita.com/takeshinoda@github/items/2dec7a72930ec1f658af) 等を使うようになると思いますが、この記事上ではいったんここまでとしたいと思います。
+さらに見やすく整形したい場合は [jq コマンド](https://qiita.com/takeshinoda@github/items/2dec7a72930ec1f658af) 等が便利ですが、この記事上ではいったんここまでとしたいと思います。
 
-何か記載内容についての指摘や提案、質問点などあればコメント欄か私の [Twitter](https://twitter.com/thdy_jp) までご連絡ください。
+何か記載内容についての指摘や提案、質問点などあれば記事コメントか [Twitter](https://twitter.com/thdy_jp) までご連絡ください。
 
-おしまい
+おわり
