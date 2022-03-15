@@ -1,6 +1,6 @@
 ---
 title: "Intune から配布したスクリプトの実行結果を Graph API で取得する"
-emoji: "🧐"
+emoji: "🍦"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["intune", "API", "PowerShell", "windows"]
 published: true
@@ -9,6 +9,11 @@ published: true
 Intune から Windows 10 デバイスへ配布したスクリプトの実行結果の詳細を Microsoft Graph API を使って取得する tips です。
 
 また、Graph API のクエリパラメータを使って出力結果を見やすくするナレッジも一部含めています。
+
+**※ 2022/03/15 追記
+スクリプトの実行結果をSlackワークフローで通知する方法について記事を書きました。
+Slackの通知で事足りる場合はこちらのほうが簡単に実装できると思います。**
+https://zenn.dev/thdy/articles/post_intune_script_results_in_slack_workflow
 
 # 課題：GUI からはスクリプトの実行ログを収集できない
 Intune からスクリプトを配布した場合、Microsoft Endpoint Manager の GUI 上では `不明 / 成功 / 失敗` しか表示されないため、配布実行したスクリプト上で処理ログを記録するようにしたりしていても Intune 上からその結果を確認することができません。
