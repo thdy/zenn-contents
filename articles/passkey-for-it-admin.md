@@ -3,7 +3,7 @@ title: "Passkeyとはなにか、組織のIT管理者はどう向き合うか"
 emoji: "🔑"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["passkey", "fido", "webauthn"]
-published: false
+published: true
 ---
 この記事は [corp-engr 情シスSlack（コーポレートエンジニア x 情シス）#1 Advent Calendar 2022](https://adventar.org/calendars/7756) 16日目の記事です。
 
