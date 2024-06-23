@@ -4,6 +4,7 @@ emoji: "🪢"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["okta", "azuread"]
 published: true
+publication_name: "joug"
 ---
 :::message
 2023.02.07 追記
