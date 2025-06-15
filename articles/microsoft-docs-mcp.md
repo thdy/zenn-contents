@@ -13,7 +13,7 @@ https://github.com/MicrosoftDocs/mcp
 この MCP サーバーによって Microsoft のドキュメントを読むすべての人たちの苦労が軽減することを期待しつつ、実際に VS Code と Cursor の 2 種類のエディタそれぞれでこの MCP サーバーを設定し使ってみたので、その結果について記載します。
 
 # 概要
-Microsoft Docs MCP サーバーは、VS Code や Cursor などの MCP（Model Context Protocol）に対応するクライアントを使って Microsoft の公式ドキュメントから直接正確な情報を検索・取得できるクラウドホスト型サービスです。利用する上で特にアカウントの作成や課金は必要ありません。
+Microsoft Docs MCP サーバーは、MCP（Model Context Protocol）に対応するクライアントを使って Microsoft の公式ドキュメントから直接正確な情報を検索・取得できるクラウドホスト型サービスです。利用する上で特にアカウントの作成や課金は必要ありません。
 
 特徴として以下のような点があります（リポジトリの README からの意訳）
 
@@ -22,7 +22,7 @@ Microsoft Docs MCP サーバーは、VS Code や Cursor などの MCP（Model Co
 - 最新の Microsoft 公式ドキュメントからのリアルタイム検索
 
 # 必要なもの
-以下のいずれかのエディタや、MCP に対応したクライアントがあれば Microsoft Docs MCP サーバーを利用できます。
+以下のいずれかのエディタや Claude Desktop など、MCP に対応したクライアントがあれば Microsoft Docs MCP サーバーを利用できます。
 
 - [Visual Studio Code](https://code.visualstudio.com/) (以下 VS Code)
 - [Cursor](https://www.cursor.com/)
