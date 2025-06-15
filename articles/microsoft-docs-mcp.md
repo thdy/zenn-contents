@@ -10,6 +10,7 @@ published: false
 https://github.com/MicrosoftDocs/mcp
 
 自分自身これまで Microsoft のドキュメントから必要な情報を探し出したり、書かれている内容を正確に解釈することにとても苦労してきました。
+
 この MCP サーバーによって Microsoft のドキュメントを読むすべての人たちの苦労が軽減することを期待しつつ、実際に VS Code と Cursor の 2 種類のエディタそれぞれでこの MCP サーバーを設定し使ってみたので、その結果について記載します。
 
 # 概要
